@@ -173,7 +173,9 @@ public class UserServant extends UnicastRemoteObject implements Runnable, Commun
     }
 
     private void getOperations() throws RemoteException {
+        showAccInfo();
         System.out.println("------------------------------------------------");
+        System.out.println("Chose account: ");
         String accID = in.nextLine();
         if (bankAccounts.containsKey(accID)) {
             Set<OperationRecord> oprs = bankAccounts.get(accID).getOperations();
@@ -283,7 +285,11 @@ public class UserServant extends UnicastRemoteObject implements Runnable, Commun
                         getOperations();
                         break;
                     case "7":
-                        removeAccount();
+                        if (bankAccounts.size() > 1) {
+                            removeAccount();
+                        } else {
+                            System.out.println("Not enough Accounts!");
+                        }
                         break;
                     case "8":
                         bankServer.createNewAccount(this);
@@ -295,6 +301,7 @@ public class UserServant extends UnicastRemoteObject implements Runnable, Commun
                 e.printStackTrace();
             } finally {
                 try {
+                    //bankServer.logout(this);
                     TimeUnit.MILLISECONDS.sleep(50);
                 } catch (InterruptedException e) {
                     e.printStackTrace();

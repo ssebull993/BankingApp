@@ -57,13 +57,15 @@ public class BankServant extends UnicastRemoteObject implements Usable {
         if (loggedInUsers.containsKey(client)) {
             loggedInUsers.remove(client);
             System.out.println(loggedInUsers);
+        } else if (!loggedInUsers.containsKey(client)) {
+            System.out.println("Logged out.");
         } else {
             System.out.println("Logging out failed...");
         }
     }
 
     @Override
-    public boolean makeOperation(Communicative client, Operation record){
+    public synchronized boolean makeOperation(Communicative client, Operation record){
         Connection conn = null;
         Statement stmt = null;
         Savepoint savepoint = null;
@@ -76,19 +78,19 @@ public class BankServant extends UnicastRemoteObject implements Usable {
             switch (record.getType()) {
                 case DEPOSIT:
                     synchronized (editor) {
-                        editor.deposit(stmt, client, record);
+                        editor.deposit(stmt, client, record, savepoint);
                         editor.updateOperationID();
                     }
                     break;
                 case WITHDRAW:
                     synchronized (editor) {
-                        editor.withdraw(stmt, client, record);
+                        editor.withdraw(stmt, client, record, savepoint);
                         editor.updateOperationID();
                     }
                     break;
                 case TRANSFER:
                     synchronized (editor) {
-                        editor.transfer(stmt, client, record);
+                        editor.transfer(stmt, client, record, savepoint);
                         editor.updateOperationID();
                     }
                     break;
@@ -102,12 +104,11 @@ public class BankServant extends UnicastRemoteObject implements Usable {
             e.printStackTrace();
         } finally {
             try {
-                if (conn != null && stmt != null) {
+                if ((conn != null && stmt != null) || (!conn.isClosed() && !stmt.isClosed())) {
                     stmt.close();
                     conn.close();
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
             }
         }
         return false;
@@ -133,7 +134,7 @@ public class BankServant extends UnicastRemoteObject implements Usable {
     }
 
     @Override
-    public void createNewAccount(Communicative client) throws RemoteException {
+    public synchronized void createNewAccount(Communicative client) throws RemoteException {
         try {
             editor.createNewAccount(DRIVER, DB_URL, loggedInUsers.get(client).getUserId());
             dbInitializer.assignAccounts();

@@ -18,7 +18,7 @@ import java.sql.Statement;
 public class DBEditor {
     private static int operationID = 1;
 
-    public synchronized boolean withdraw(Statement stmt, Communicative client, Operation opr) throws SQLException {
+    public synchronized boolean withdraw(Statement stmt, Communicative client, Operation opr, Savepoint savepoint) throws SQLException {
         try {
             String accID = opr.getAccountFrom();
             String value = opr.getValue();
@@ -38,13 +38,13 @@ public class DBEditor {
                 }
             }
         } catch (SQLException e) {
-            stmt.getConnection().rollback();
+            stmt.getConnection().rollback(savepoint);
             e.printStackTrace();
         }
         return false;
     }
 
-    public synchronized boolean deposit(Statement stmt, Communicative client, Operation opr) throws SQLException {
+    public synchronized boolean deposit(Statement stmt, Communicative client, Operation opr, Savepoint savepoint) throws SQLException {
         try {
             String accID = opr.getAccountTo();
             String value = opr.getValue();
@@ -56,7 +56,7 @@ public class DBEditor {
             stmt.executeUpdate(deposit + createRecord(opr, TransactionType.DEPOSIT));
             return true;
         } catch (SQLException e) {
-            stmt.getConnection().rollback();
+            stmt.getConnection().rollback(savepoint);
             e.printStackTrace();
             try {
                 client.messageClient("Incorrect Account id!", true);
@@ -67,7 +67,7 @@ public class DBEditor {
         return false;
     }
 
-    public synchronized void transfer(Statement stmt, Communicative client, Operation opr) {
+    public synchronized void transfer(Statement stmt, Communicative client, Operation opr, Savepoint savepoint) {
         try {
             String accIDFrom = opr.getAccountFrom();
             String value = opr.getValue();
@@ -95,7 +95,7 @@ public class DBEditor {
             stmt.executeUpdate(deposit + createRecord(opr, TransactionType.DEPOSIT));
         } catch(SQLException e){
             try {
-                stmt.getConnection().rollback();
+                stmt.getConnection().rollback(savepoint);
             } catch (SQLException e1) {
                 e1.printStackTrace();
             }
@@ -150,7 +150,7 @@ public class DBEditor {
                 e.printStackTrace();
             } finally {
                 try {
-                    if (!stmt.isClosed() && !conn.isClosed()) {
+                    if ((conn != null && stmt != null) || (!conn.isClosed() && !stmt.isClosed())) {
                         stmt.close();
                         conn.close();
                     }
@@ -168,9 +168,11 @@ public class DBEditor {
     public synchronized void createNewAccount(String DRIVER, String DB_URL, String accountOwner) throws SQLException, ClassNotFoundException {
         Connection conn = null;
         Statement stmt = null;
+        Savepoint savepoint = null;
         try {
             Class.forName(DRIVER);
             conn = DriverManager.getConnection(DB_URL);
+            savepoint = conn.setSavepoint();
             stmt = conn.createStatement();
             conn.setAutoCommit(false);
             String sql = "INSERT INTO account_info(accountOwner, accountType) " +
@@ -179,8 +181,11 @@ public class DBEditor {
             stmt.close();
             conn.commit();
             conn.close();
+        } catch (SQLException e) {
+            conn.rollback(savepoint);
+            e.printStackTrace();
         } finally {
-            if (!conn.isClosed() && !stmt.isClosed()) {
+            if ((conn != null && stmt != null) || (!conn.isClosed() && !stmt.isClosed())) {
                 stmt.close();
                 conn.close();
             }
@@ -190,9 +195,11 @@ public class DBEditor {
     public synchronized void removeAccount(String DRIVER, String DB_URL, String accountID) throws SQLException {
         Connection conn = null;
         Statement stmt = null;
+        Savepoint savepoint = null;
         try {
             Class.forName(DRIVER);
             conn = DriverManager.getConnection(DB_URL);
+            savepoint = conn.setSavepoint();
             stmt = conn.createStatement();
             conn.setAutoCommit(false);
             String sql = "DELETE FROM account_info WHERE accountID == '" + accountID + "';";
@@ -202,9 +209,9 @@ public class DBEditor {
             conn.close();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
-            conn.rollback();
+            conn.rollback(savepoint);
         } finally {
-            if (!conn.isClosed() && !stmt.isClosed()) {
+            if ((conn != null && stmt != null) || (!conn.isClosed() && !stmt.isClosed())) {
                 stmt.close();
                 conn.close();
             }

@@ -82,7 +82,7 @@ final class DBInitializer {
                 map.put(rs.getString("userID"), customer);
             }
         } finally {
-            if (!stmt.isClosed() && !conn.isClosed()) {
+            if (conn != null && stmt != null && conn != null && stmt != null) {
                 stmt.close();
                 conn.close();
             }
@@ -105,7 +105,7 @@ final class DBInitializer {
                 map.put(rs.getString("accountID"), account);
             }
         } finally {
-            if (!stmt.isClosed() && !conn.isClosed()) {
+            if (conn != null && stmt != null && conn != null && stmt != null) {
                 stmt.close();
                 conn.close();
             }
@@ -129,7 +129,7 @@ final class DBInitializer {
                 oprs.add(opr);
             }
         } finally {
-            if (!stmt.isClosed() && !conn.isClosed()) {
+            if (conn != null && stmt != null && conn != null && stmt != null) {
                 stmt.close();
                 conn.close();
             }
@@ -153,7 +153,7 @@ final class DBInitializer {
             e.printStackTrace();
         } finally {
             try {
-                if (stmt != null  && conn != null) {
+                if (conn != null && stmt != null && conn != null && stmt != null) {
                     stmt.close();
                     conn.close();
                 }
