@@ -1,0 +1,41 @@
+group 'com.mad'
+version '1.0-SNAPSHOT'
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+task clientJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Jar File Example',
+                'Implementation-Version': version,
+                'Main-Class': 'com.mad.bank.client.UserClient'
+    }
+    exclude ('com.mad.bank.server/**', 'com.mad.bank.client.MainApp', 'com.mad.bank.client.model/**', 'com.mad.bank.client.view/**')
+    baseName = project.name + '-Client'
+    with jar
+}
+
+task serverJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Jar File Example',
+                'Implementation-Version': version,
+                'Main-Class': 'com.mad.bank.server.BankServer'
+    }
+    exclude ('com.mad.bank.client/**')
+    baseName = project.name + '-Server'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+//Get dependencies from Maven central repository
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.8.11.2'
+    compile group: 'com.google.guava', name: 'guava', version: '23.0'
+
+
+}
