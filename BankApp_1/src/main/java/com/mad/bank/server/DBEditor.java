@@ -150,7 +150,7 @@ public class DBEditor {
                 e.printStackTrace();
             } finally {
                 try {
-                    if ((conn != null && stmt != null) || (!conn.isClosed() && !stmt.isClosed())) {
+                    if ((conn != null && stmt != null) && (!conn.isClosed() && !stmt.isClosed())) {
                         stmt.close();
                         conn.close();
                     }
@@ -185,9 +185,13 @@ public class DBEditor {
             conn.rollback(savepoint);
             e.printStackTrace();
         } finally {
-            if ((conn != null && stmt != null) || (!conn.isClosed() && !stmt.isClosed())) {
-                stmt.close();
-                conn.close();
+            try {
+                if ((conn != null && stmt != null) && (!conn.isClosed() && !stmt.isClosed())) {
+                    stmt.close();
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -211,9 +215,13 @@ public class DBEditor {
             e.printStackTrace();
             conn.rollback(savepoint);
         } finally {
-            if ((conn != null && stmt != null) || (!conn.isClosed() && !stmt.isClosed())) {
-                stmt.close();
-                conn.close();
+            try {
+                if ((conn != null && stmt != null) && (!conn.isClosed() && !stmt.isClosed())) {
+                    stmt.close();
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         }
     }
