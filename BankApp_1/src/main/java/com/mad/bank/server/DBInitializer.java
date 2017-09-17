@@ -82,9 +82,13 @@ final class DBInitializer {
                 map.put(rs.getString("userID"), customer);
             }
         } finally {
-            if (conn != null && stmt != null && conn != null && stmt != null) {
-                stmt.close();
-                conn.close();
+            try {
+                if ((conn != null && stmt != null) && (!conn.isClosed() && !stmt.isClosed())) {
+                    stmt.close();
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         }
         return map;
@@ -105,9 +109,13 @@ final class DBInitializer {
                 map.put(rs.getString("accountID"), account);
             }
         } finally {
-            if (conn != null && stmt != null && conn != null && stmt != null) {
-                stmt.close();
-                conn.close();
+            try {
+                if ((conn != null && stmt != null) && (!conn.isClosed() && !stmt.isClosed())) {
+                    stmt.close();
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         }
         return map;
@@ -129,9 +137,13 @@ final class DBInitializer {
                 oprs.add(opr);
             }
         } finally {
-            if (conn != null && stmt != null && conn != null && stmt != null) {
-                stmt.close();
-                conn.close();
+            try {
+                if ((conn != null && stmt != null) && (!conn.isClosed() && !stmt.isClosed())) {
+                    stmt.close();
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         }
         return oprs;
@@ -153,7 +165,7 @@ final class DBInitializer {
             e.printStackTrace();
         } finally {
             try {
-                if (conn != null && stmt != null && conn != null && stmt != null) {
+                if ((conn != null && stmt != null) && (!conn.isClosed() && !stmt.isClosed())) {
                     stmt.close();
                     conn.close();
                 }
